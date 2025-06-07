@@ -1,0 +1,108 @@
+ REM Schraf Graphical BASIC Demos
+ REM BBC BASIC Acorn Archimedes version
+ REM Adapted by Xander Mol, 2025
+
+ ON ERROR RUN
+
+ MODE 15
+ dummy = RND(-TIME)
+
+ REPEAT
+   CLS
+   PRINT "Schraf Graphical BASIC demos, Archimedes version"
+   PRINT
+   PRINT "Choose demo:"
+   PRINT "1: Bubble Universe"
+   PRINT "2: Field Lines"
+   PRINT "0: Quit"
+   PRINT
+   PRINT "After demo, press key to exit."
+   PRINT
+   PRINT "Press number key to choose demo."
+
+   *FX 15,1
+   key = GET
+   CASE key OF
+     WHEN 49 : PROCbubbleuniverse
+     WHEN 50 : PROCfieldlines
+     WHEN 51 : PROChat
+   ENDCASE
+ UNTIL key = 48
+
+ END
+
+ DEF PROCwaitkey
+   PRINT TAB(0,0),"Press key to continue."
+   key = GET
+ ENDPROC
+
+ DEF PROCbubbleuniverse
+   CLS
+   VDU 23,1,0
+
+   pi = 4*TAN(1)
+   r = 2 * pi / 235
+   t = RND(4)
+   x = 0 : u = 0 : v = 0
+   CLS
+   FOR i% = 0 TO 249
+     FOR j% = 0 TO 249
+       u = SIN(i% + v) + SIN(r * i% + x)
+       v = COS(i% + v) + COS(r * i% + x)
+       x = u + t
+       px% = 640 + (256 * u)
+       py% = 512 + (256 * v)
+       col% = (i% * 3) MOD 64
+       tint% = ((j% * 3) MOD 4)*64
+       GCOL col% TINT tint%
+       POINT px%,py%
+       REM RECTANGLE FILL px%, py%, 2, 2
+     NEXT j%
+   NEXT i%
+   PROCwaitkey
+ ENDPROC
+
+ DEF PROCfieldlines
+   CLS
+   VDU 23,1,0
+
+   pi = 3.1415926
+   np = 1024
+   n = 180
+   m = 30
+   k = 0.02
+
+   FOR i% = 0 TO n
+     x = RND(1)
+     y = RND(1)
+     FOR j% = 0 TO m
+       x_pixel = INT(np * x)
+       y_pixel = INT(np * y)
+       screenX = x_pixel + (1280 - np) / 2
+       screenY = y_pixel
+       IF j% > 0 THEN
+         colour = prevX * prevX + prevY * prevY
+         col% = colour MOD 64
+         tint% = (colour MOD 4)*64
+         GCOL col% TINT tint%
+         MOVE prevX, prevY
+         DRAW screenX, screenY
+       ENDIF
+       prevX = screenX
+       prevY = screenY
+       xx = 2 * x - 1
+       yy = 2 * y - 1
+       IF xx <> 0 THEN
+         an = ATN(yy / xx)
+       ELSE
+         an = pi / 2 * SGN(yy)
+       ENDIF
+       IF xx < 0 THEN an = an + pi * SGN(yy)
+         an = an + 4 * pi / 3 + SIN(6 * pi * SQR(xx * xx + yy * yy)) / 4
+         x = x + k * COS(an)
+         y = y + k * SIN(an)
+         IF x <= 0 OR x >= 1 OR y <= 0 OR y >= 1 THEN j% = m
+     NEXT
+   NEXT
+   PROCwaitkey
+ ENDPROC
