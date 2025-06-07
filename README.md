@@ -1,2 +1,2 @@
-# BBC_BASIC_Samples
+# ArchieBASIC
 Samples and experiments in BBC BASIC for Acorn Archimedes
