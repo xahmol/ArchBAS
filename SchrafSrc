@@ -1,34 +1,43 @@
- REM Schraf Graphical BASIC Demos
+  REM Schraf Graphical BASIC Demos
  REM BBC BASIC Acorn Archimedes version
  REM Adapted by Xander Mol, 2025
 
  ON ERROR RUN
 
- MODE 15
  dummy = RND(-TIME)
+ DIM pxmap%(319,255)
+ DIM coul%(3,1)
+
+ MODE 15
+ VDU 23,1,0;0;0;0;
 
  REPEAT
    CLS
-   PRINT "Schraf Graphical BASIC demos, Archimedes version"
-   PRINT
-   PRINT "Choose demo:"
-   PRINT "1: Bubble Universe"
-   PRINT "2: Field Lines"
-   PRINT "0: Quit"
-   PRINT
-   PRINT "After demo, press key to exit."
-   PRINT
-   PRINT "Press number key to choose demo."
+   PRINT TAB(0,1),"Schraf Graphical BASIC demos, Archimedes version"
+   PRINT TAB(0,3),"Choose demo:"
+   PRINT TAB(0,4),"1: Bubble Universe"
+   PRINT TAB(0,5),"2: Field Lines"
+   PRINT TAB(0,6),"3: Mathematical Hat"
+   PRINT TAB(0,7),"4: Event Horizon"
+   PRINT TAB(0,8),"5: Galaxy"
+   PRINT TAB(0,10),"0: Quit"
+   PRINT TAB(0,12),"After demo, press key to exit."
+   PRINT TAB(0,14),"Press number key to choose demo."
 
    *FX 15,1
+   VDU 23,1,1;0;0;0;
    key = GET
+   VDU 23,1,0;0;0;0;
    CASE key OF
      WHEN 49 : PROCbubbleuniverse
      WHEN 50 : PROCfieldlines
      WHEN 51 : PROChat
+     WHEN 52 : PROCeventhorizon
+     WHEN 53 : PROCgalaxy
    ENDCASE
  UNTIL key = 48
 
+ VDU 23,1,1;0;0;0;
  END
 
  DEF PROCwaitkey
@@ -38,7 +47,6 @@
 
  DEF PROCbubbleuniverse
    CLS
-   VDU 23,1,0
 
    pi = 4*TAN(1)
    r = 2 * pi / 235
@@ -64,7 +72,6 @@
 
  DEF PROCfieldlines
    CLS
-   VDU 23,1,0
 
    pi = 3.1415926
    np = 1024
@@ -82,7 +89,7 @@
        screenY = y_pixel
        IF j% > 0 THEN
          colour = prevX * prevX + prevY * prevY
-         col% = colour MOD 64
+         col% = (colour MOD 4)*4 + 3
          tint% = (colour MOD 4)*64
          GCOL col% TINT tint%
          MOVE prevX, prevY
@@ -106,3 +113,106 @@
    NEXT
    PROCwaitkey
  ENDPROC
+
+ DEF PROChat
+   CLS
+
+   pi = 3.1415926
+   xp = 240
+   xr = 1.5 * pi
+   yp = 90
+   xf = xr / xp
+
+   FOR zi% = -yp TO yp
+     zt = zi% * xp / yp
+     xl% = INT(0.5 + SQR(xp * xp - zt * zt))
+     FOR xi% = -xl% TO xl%
+       xt = SQR(xi% * xi% + zt * zt) * xf
+       yy = (SIN(xt) + 0.4 * SIN(3 * xt)) * yp
+       y1% = INT(yy - zi% + 256)
+       x1% = INT(xi% + zi% + 320)
+       colour = x1%*x1% + y1%*y1%
+       col% = (colour MOD 8)*4 + 3
+       tint% = (colour MOD 4)*64
+       GCOL col% TINT tint%
+       POINT x1% * 2, y1% * 2
+       GCOL 0 TINT 0
+       MOVE (x1%-1) * 2, (y1% - 1) * 2
+       DRAW (x1%-1) * 2, 0
+     NEXT xi%
+   NEXT zi%
+
+   PROCwaitkey
+ ENDPROC
+
+ DEF PROCeventhorizon
+   CLS
+
+   w = 640
+   h = 256
+   FOR i% = 0 TO w - 1
+     FOR j% = 0 TO h - 1
+       x = i% / w
+       y = j% / h
+       dx = 4 * x - 2
+       dy = 4 * y - 2
+       g = 0
+       IF x <> y THEN
+         a = SQR(dx * dx + dy * dy) - 1
+         IF a <> 0 THEN
+           g = INT(30 / ABS(a + .005 / (x - y)))
+           IF g > 255 THEN g = 255
+           IF g < 0 THEN g = 0
+         ELSE
+           g = 255
+         ENDIF
+         GCOL g MOD 64 TINT (g MOD 4)*64
+         POINT i%*2, j%*4
+       ENDIF
+     NEXT
+   NEXT
+
+   PROCwaitkey
+ ENDPROC
+
+ DEF PROCgalaxy
+
+  coul%(0,0) = 0
+  coul%(0,1) = 0
+  coul%(1,0) = 3
+  coul%(1,1) = 0
+  coul%(2,0) = 15
+  coul%(2,1) = 3
+  coul%(3,0) = 63
+  coul%(3,1) = 3
+
+  CLS
+
+  FOR n%=1 TO 50000
+    s = LOG(RND(1))
+    t = 300 * RND(1)
+    u = 60 * s * SIN(t)
+    v = 50 * s * COS(t)
+    p = 3 * s
+    c = COS(p)
+    s2 = SIN(p)
+    x = u * c + v * s2
+    y = -u * s2 + v * c
+    r = x * x + y * y
+    z = 80 * EXP(-r / 10)
+    z = z * (RND(1) - 0.5)
+    y = y + z + INT(RND(1) * 40) + 1
+    x = x + (-z * 0.3 * INT(RND(1) * 20 + 1))
+    xx = INT(160 + x * 0.7 + y * 0.3)
+    yy = INT(128 + x * 0.1 + y * 0.4)
+    IF xx >= 0 AND xx < 320 AND yy >= 0 AND yy < 256 THEN
+        col = pxmap%(xx,yy)
+        IF col < 3 THEN col = col + 1
+        pxmap%(xx,yy) = col
+        GCOL coul%(col,0) TINT coul%(col,1)
+        RECTANGLE FILL 4*xx, 1024 - 4*yy,2
+    ENDIF
+  NEXT
+
+  PROCwaitkey
+ENDPROC
