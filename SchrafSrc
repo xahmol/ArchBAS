@@ -1,17 +1,12 @@
- REM Schraf Graphical BASIC Demos
  REM BBC BASIC Acorn Archimedes version
  REM Adapted by Xander Mol, 2025
 
  ON ERROR RUN
 
  dummy = RND(-TIME)
- DIM pxmap%(319,255)
- DIM coul%(3,1)
-
- MODE 15
- VDU 23,1,0;0;0;0;
 
  REPEAT
+   MODE 15
    CLS
    PRINT TAB(0,1),"Schraf Graphical BASIC demos, Archimedes version"
    PRINT TAB(0,3),"Choose demo:"
@@ -20,14 +15,12 @@
    PRINT TAB(0,6),"3: Mathematical Hat"
    PRINT TAB(0,7),"4: Event Horizon"
    PRINT TAB(0,8),"5: Galaxy"
-   PRINT TAB(0,10),"0: Quit"
-   PRINT TAB(0,12),"After demo, press key to exit."
-   PRINT TAB(0,14),"Press number key to choose demo."
+   PRINT TAB(0,11),"0: Quit"
+   PRINT TAB(0,13),"After demo, press key to exit."
+   PRINT TAB(0,15),"Press number key to choose demo."
 
    *FX 15,1
-   VDU 23,1,1;0;0;0;
    key = GET
-   VDU 23,1,0;0;0;0;
    CASE key OF
      WHEN 49 : PROCbubbleuniverse
      WHEN 50 : PROCfieldlines
@@ -37,7 +30,6 @@
    ENDCASE
  UNTIL key = 48
 
- VDU 23,1,1;0;0;0;
  END
 
  DEF PROCwaitkey
@@ -46,6 +38,8 @@
  ENDPROC
 
  DEF PROCbubbleuniverse
+   MODE 15
+   VDU 23,1,0;0;0;0;
    CLS
 
    pi = 4*TAN(1)
@@ -71,6 +65,8 @@
  ENDPROC
 
  DEF PROCfieldlines
+   MODE 15
+   VDU 23,1,0;0;0;0;0;
    CLS
 
    pi = 3.1415926
@@ -115,6 +111,8 @@
  ENDPROC
 
  DEF PROChat
+   MODE 15
+   VDU 23,1,0;0;0;0;0;
    CLS
 
    pi = 3.1415926
@@ -146,7 +144,14 @@
  ENDPROC
 
  DEF PROCeventhorizon
+   MODE 12
+   VDU 23,1,0;0;0;0;0;
    CLS
+
+   REM Create 16 shades of white
+   FOR col = 0 TO 15
+     COLOUR col, col*16, col*16, col*16
+   NEXT col
 
    w = 640
    h = 256
@@ -166,7 +171,7 @@
          ELSE
            g = 255
          ENDIF
-         GCOL g MOD 64 TINT (g MOD 4)*64
+         GCOL g / 16
          POINT i%*2, j%*4
        ENDIF
      NEXT
@@ -176,43 +181,41 @@
  ENDPROC
 
  DEF PROCgalaxy
+   MODE 12
+   VDU 23,1,0;0;0;0;0;
+   CLS
 
-  coul%(0,0) = 0
-  coul%(0,1) = 0
-  coul%(1,0) = 3
-  coul%(1,1) = 0
-  coul%(2,0) = 15
-  coul%(2,1) = 3
-  coul%(3,0) = 63
-  coul%(3,1) = 3
+   COLOUR 0,0,0,0
+   COLOUR 1,255,0,0
+   COLOUR 2,255,255,0
+   COLOUR 3,255,255,255
 
-  CLS
+   CLS
 
-  FOR n%=1 TO 50000
-    s = LOG(RND(1))
-    t = 300 * RND(1)
-    u = 60 * s * SIN(t)
-    v = 50 * s * COS(t)
-    p = 3 * s
-    c = COS(p)
-    s2 = SIN(p)
-    x = u * c + v * s2
-    y = -u * s2 + v * c
-    r = x * x + y * y
-    z = 80 * EXP(-r / 10)
-    z = z * (RND(1) - 0.5)
-    y = y + z + INT(RND(1) * 40) + 1
-    x = x + (-z * 0.3 * INT(RND(1) * 20 + 1))
-    xx = INT(160 + x * 0.7 + y * 0.3)
-    yy = INT(128 + x * 0.1 + y * 0.4)
-    IF xx >= 0 AND xx < 320 AND yy >= 0 AND yy < 256 THEN
-        col = pxmap%(xx,yy)
-        IF col < 3 THEN col = col + 1
-        pxmap%(xx,yy) = col
-        GCOL coul%(col,0) TINT coul%(col,1)
-        RECTANGLE FILL 4*xx, 1024 - 4*yy,2
-    ENDIF
-  NEXT
+   FOR n= 1 TO 50000
+     s = LOG(RND(1))
+     t = 300 * RND(1)
+     u = 60 * s * SIN(t)
+     v = 50 * s * COS(t)
+     p = 3 * s
+     c = COS(p)
+     s2 = SIN(p)
+     x = u * c + v * s2
+     y = -u * s2 + v * c
+     r = x * x + y * y
+     z = 80 * EXP(-r / 10)
+     z = z * (RND(1) - 0.5)
+     y = y + z + INT(RND(40)) + 1
+     x = x + (-z * 0.3 * INT(RND(20) + 1))
+     xx = 4 * INT(160 + x * 0.7 + y * 0.3)
+     yy = 4 * INT(120 + x * 0.1 + y * 0.4)
+     IF xx >= 0 AND xx < 1280 AND yy >= 0 AND yy < 1024 THEN
+       col = POINT(xx,yy)
+       IF col < 3 THEN col = col + 1
+       GCOL col
+       RECTANGLE FILL xx, 1024 - yy,2
+     ENDIF
+   NEXT n
 
-  PROCwaitkey
-ENDPROC
+   PROCwaitkey
+ ENDPROC
