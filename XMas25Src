@@ -1,0 +1,168 @@
+REM Christmas Tree
+REM Original by Aurel
+REM Source:
+REM https://www.facebook.com/groups/2057165187928233/permalink/4154951661482898/
+REM Micro(A) conversion for Acorn Archimedes (MODE 15)
+REM Done by Google Gemini Pro, Xander Mol
+
+MODE 15
+OFF
+VDU 5 : REM Enable text at graphics cursor
+
+REM -------------------------------------------
+REM VARIABLE SETUP
+REM -------------------------------------------
+rise=0 : rad=0 : frad=0 : xshorten=0
+bpx=0 : bpy=0 : tpx=0 : tpy=0
+x1=0 : y1=0 : x2=0 : y2=0
+ht=0 : xs=0 : aa=0 : msto=0
+tpxx=0 : tpyy=0 : bpxx=0 : bpyy=0 : minus4=0
+x=0 : y=0 : px=0 : py=0
+
+REM -------------------------------------------
+REM MAIN PROGRAM
+REM -------------------------------------------
+
+REM 1. Clear Screen
+PROC_color(0,0,0)
+CLG
+
+REM 2. Draw Stars
+PROC_drawStars
+
+REM 3. Initialize Tree Base
+msto = -100
+minus4 = -4
+bpx=220 : bpy=410 : tpx=bpx
+
+REM 4. Draw Brown Trunk
+PROC_color(130, 100, 0)
+aa = minus4
+WHILE aa < 4
+  bpxx = bpx + aa
+  bpyy = bpy - 390
+  PROC_line(bpxx, bpy, bpx, bpyy)
+  aa = aa + 1
+ENDWHILE
+
+REM 5. Draw Green Leaves
+PROC_color(30, 120, 40)
+rad = 160 : tpy = bpy - 40
+ht = 1
+
+WHILE ht < 40
+  xs = -100
+  WHILE xs < 100
+    xshorten = xs / 100
+    rise = RND(1) * 0.93
+    tpxx = tpx + (xshorten * rad)
+    tpyy = tpy - rise * rad
+    PROC_line(tpx, tpy, tpxx, tpyy)
+
+    aa = 1
+    WHILE aa < 30
+      frad = RND(1) * 0.9 * rad
+      x1 = tpx + (xshorten * frad)
+      y1 = tpy - rise * frad
+      x2 = tpx + xshorten * (frad + rad/5)
+      y2 = tpy - rise * frad + (-rise + (RND(1) * 0.9 - 0.456)) * (rad / 5)
+      PROC_line(x1, y1, x2, y2)
+      aa = aa + 1
+    ENDWHILE
+    
+    xs = xs + 40
+  ENDWHILE
+  
+  rad = rad - 4
+  tpy = tpy - 9
+  ht = ht + 1
+ENDWHILE
+
+REM 6. Draw Text Messages
+PROC_color(200, 220, 200)
+PROC_print(300, 40, " * * * Merry Christmas ! * * * ")
+PROC_print(300, 80, " * * * Happy New Year ! * * * ")
+
+REM 7. Draw Ornaments
+REM Using native CIRCLE x, y, radius directly
+REM Coords mapped: x*2, (480-y)*2. Radius mapped: r*2
+
+PROC_color(220, 200, 100)
+CIRCLE 190*2, (480-100)*2, 12 : CIRCLE 190*2, (480-100)*2, 8 : CIRCLE 190*2, (480-100)*2, 4
+
+PROC_color(250, 100, 100)
+CIRCLE 250*2, (480-180)*2, 12 : CIRCLE 250*2, (480-180)*2, 8 : CIRCLE 250*2, (480-180)*2, 4
+
+PROC_color(150, 100, 250)
+CIRCLE 175*2, (480-165)*2, 12 : CIRCLE 175*2, (480-165)*2, 8 : CIRCLE 175*2, (480-165)*2, 4
+
+PROC_color(80, 150, 255)
+CIRCLE 140*2, (480-225)*2, 12 : CIRCLE 140*2, (480-225)*2, 8 : CIRCLE 140*2, (480-225)*2, 4
+
+PROC_color(80, 250, 255)
+CIRCLE 270*2, (480-245)*2, 12 : CIRCLE 270*2, (480-245)*2, 8 : CIRCLE 270*2, (480-245)*2, 4
+
+PROC_color(200, 150, 255)
+CIRCLE 90*2, (480-302)*2, 12 : CIRCLE 90*2, (480-302)*2, 8 : CIRCLE 90*2, (480-302)*2, 4
+
+PROC_color(250, 180, 255)
+CIRCLE 295*2, (480-302)*2, 12 : CIRCLE 295*2, (480-302)*2, 8 : CIRCLE 295*2, (480-302)*2, 4
+
+REM 8. Cleanup
+PROC_print(20, 460, "Press Space to exit...")
+REPEAT : UNTIL GET=32
+MODE 12
+END
+
+REM -------------------------------------------
+REM PROCEDURES
+REM -------------------------------------------
+
+DEF PROC_drawStars
+  LOCAL x, px, py
+  x = 10
+  WHILE x < 400
+    px = RND(600) : py = RND(480)
+    PROC_color(220, 220, 110)
+    PROC_print(px, py, ".")
+    PROC_color(120, 220, 210)
+    x = x + 4
+  ENDWHILE
+ENDPROC
+
+DEF PROC_line(x1, y1, x2, y2)
+  MOVE x1 * 2, (480 - y1) * 2
+  DRAW x2 * 2, (480 - y2) * 2
+ENDPROC
+
+DEF PROC_print(x, y, txt$)
+  MOVE x * 2, (480 - y) * 2
+  PRINT txt$
+ENDPROC
+
+REM ------------------------------------------------------------
+REM NATIVE COLOUR CALCULATION FOR MODE 15 (256 Colors)
+REM ------------------------------------------------------------
+
+DEF PROC_color(r, g, b)
+  REM 1. Reduce 0-255 range to 0-15 (4-bit hardware color)
+  LOCAL r4%, g4%, b4%
+  r4% = r% DIV 16
+  g4% = g% DIV 16
+  b4% = b% DIV 16
+
+  REM 2. Calculate GCOL value (Logical Colour 0-63)
+  REM    Uses the top 2 bits of the 4-bit value
+  REM    Format: BBGGRR
+  LOCAL logical_col%
+  logical_col% = (r4% DIV 4) OR ((g4% DIV 4) << 2) OR ((b4% DIV 4) << 4)
+
+  REM 3. Calculate TINT value (0, 64, 128, 192)
+  REM    Uses the average of the bottom 2 bits of the 4-bit values
+  LOCAL tint_val%
+  tint_val% = ((r4% AND 3) + (g4% AND 3) + (b4% AND 3)) DIV 3
+  tint_val% = tint_val% * 64
+
+  REM 4. Apply commands
+  GCOL logical_col% TINT tint_val%
+ENDPROC
